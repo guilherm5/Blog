@@ -1,4 +1,7 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
+from fastapi.security import OAuth2PasswordBearer
+import requests
+from jose import jwt
 from models.models import Usuario
 from database.connect import connect_database
 
@@ -27,3 +30,38 @@ def create_user(user: Usuario):
         cursor.close()
         conn.close()  
 
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+GOOGLE_CLIENT_ID = ""
+GOOGLE_CLIENT_SECRET = ""
+GOOGLE_REDIRECT_URI = ""
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+@app.get("/login/google")
+async def login_google():
+    return {
+        "url": f"https://accounts.google.com/o/oauth2/auth?response_type=code&client_id={GOOGLE_CLIENT_ID}&redirect_uri={GOOGLE_REDIRECT_URI}&scope=openid%20profile%20email&access_type=offline"
+    }
+
+@app.get("/auth/google")
+async def auth_google(code: str):
+    token_url = "https://accounts.google.com/o/oauth2/token"
+    data = {
+        "code": code,
+        "client_id": GOOGLE_CLIENT_ID,
+        "client_secret": GOOGLE_CLIENT_SECRET,
+        "redirect_uri": GOOGLE_REDIRECT_URI,
+        "grant_type": "authorization_code",
+    }
+    response = requests.post(token_url, data=data)
+    if response.status_code == 200:
+        access_token = response.json().get("access_token")
+        print(access_token)
+        return {"access_token": access_token}
+    else:
+        raise HTTPException(status_code=response.status_code, detail=response.text)
+
+@app.get("/token")
+async def get_token(token: str = Depends(oauth2_scheme)):
+    return jwt.decode(token, GOOGLE_CLIENT_SECRET, algorithms=["HS256"])
