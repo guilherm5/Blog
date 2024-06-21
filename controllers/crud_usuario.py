@@ -1,28 +1,41 @@
 from fastapi import HTTPException
-from fastapi.security import OAuth2PasswordBearer
 from models.models import Usuario
 from database.connect import connect_database
-from fastapi import HTTPException, Depends 
+from fastapi import HTTPException 
+
+conn = connect_database()
+cursor = conn.cursor()
 
 def create_user(user: Usuario):
-    cursor = connect_database()
     try:
         # Verifica se já existe usuário cadastrado
         cursor.execute("SELECT u.email_usuario FROM usuario u WHERE email_usuario = %s", (user.email_usuario,))
         email_existing = cursor.fetchone()
+        
         if email_existing:
             raise HTTPException(status_code=400, detail="Email já cadastrado.")
         
         cursor.execute("INSERT INTO usuario (nome_usuario, email_usuario, senha_usuario) VALUES (%s, %s, %s)", 
                        (user.nome_usuario, user.email_usuario, user.encript_nome(user.senha_usuario)))
-        cursor.commit()
+        conn.commit()
         return {"mensagem": "sucesso"}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e))
     finally:
         cursor.close()
+        conn.close()
 
-
+def get_users():
+    try:
+        usuarios = cursor.execute("SELECT * FROM usuario")
+        
+        return usuarios
+    except Exception as e:
+        return e  
+    finally:
+        cursor.close()
+        conn.close()
+    
 
 
 
