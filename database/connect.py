@@ -9,7 +9,7 @@ def connect_database():
         conn = psycopg2.connect(
             database=os.environ['database'],
             host=os.environ['host'],
-            user=os.environ['user'],
+            user=os.environ['usuario'],
             password=os.environ['senha']
         )
         print("Conexão com o banco de dados estabelecida com sucesso.")
@@ -17,3 +17,4 @@ def connect_database():
     except psycopg2.Error as e:
         print(f'Erro ao realizar conexão com banco de dados, erro: {e}')
         raise HTTPException(status_code=500, detail=f'Erro ao realizar conexão com banco de dados, erro: {e}')
+    
