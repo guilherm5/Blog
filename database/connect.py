@@ -2,6 +2,7 @@ import psycopg2
 import os
 from fastapi import HTTPException
 
+# Estudar pool de conexão
 def connect_database():
     print('Tentando estabelecer conexão com o banco de dados...')
     conn = None
