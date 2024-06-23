@@ -40,32 +40,35 @@ def create_user(user: Usuario):
     finally:
         cursor.close()
 
-def get_users():
+def get_my_user(request: Request):
+    cursor = None 
     try:
+        uuid_usuario = request.state.my_attr['uuid_usuario']
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM usuario")
-        usuarios = cursor.fetchall()
-
-        dict_users = []
-        for row in usuarios:
-            data = {
-                "id_usuario": row[0]
-                , "nome": row[1]
-                , "email": row[2]
-                , "bio": row[5]
-                , "uuid_usuario": row[7]
-            }
-            dict_users.append(data)
-        return dict_users
+        cursor.execute("SELECT * FROM usuario WHERE uuid_usuario = %s", (uuid_usuario,))
+        usuario = cursor.fetchone()
+        
+        return {
+            'id_usuario': usuario[0], 
+            'nome_usuario': usuario[1],
+            'foto_usuario': usuario[4],
+            'bio_usuario': usuario[5], 
+            'data_cadastro_usuario': usuario[6],
+            'uuid_usuario': usuario[7]
+        }
     except psycopg2.Error as e:
-        return e
+        raise HTTPException(status_code=400, detail=str(e))
     except HTTPException as e:
         raise HTTPException(status_code=400, detail=str(e))
     finally:
         cursor.close()
 
-def delete_user(user: Usuario):
+def delete_user(user: Usuario, request: Request):
+    cursor = None
     try:
+        uuid_usuario = request.state.my_attr['uuid_usuario']
+        if uuid_usuario != str(user.uuid_usuario):
+            raise HTTPException(status_code=400, detail="Você não tem permissão para deletar este usuário.")
         cursor = conn.cursor()
         cursor.execute("DELETE FROM usuario WHERE uuid_usuario = %s", (str(user.uuid_usuario),))
         conn.commit()
@@ -76,7 +79,8 @@ def delete_user(user: Usuario):
     except HTTPException as e:
         raise HTTPException(status_code=400, detail=str(e))
     finally:
-        cursor.close()
+        if cursor: 
+            cursor.close()
 
 def update_user(user: Usuario, request: Request):
     cursor = None
