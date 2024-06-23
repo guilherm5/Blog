@@ -121,7 +121,7 @@ def get_current_user(request: Request):
     cursor = None
     authorization = request.headers.get('Authorization')
     if not authorization:
-        raise HTTPException(status_code=400, detail="Erro ao enviar requisição")
+        raise HTTPException(status_code=400, detail="Erro ao enviar requisição, confira seus dados ou consulte o desenvolvedor do sistema.")
     
     token = authorization.split()[1]
     try:
@@ -169,7 +169,7 @@ def get_current_user(request: Request):
     except psycopg2.Error as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Erro inesperado ao realizar consulta de usuário, consulte o administrador do sistema. Erro: {e}")
+        raise HTTPException(status_code=400, detail=f"Erro inesperado ao realizar consulta de usuário. Erro: {e}")
     finally:
         if cursor:
             cursor.close()
