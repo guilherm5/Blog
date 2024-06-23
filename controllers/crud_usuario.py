@@ -1,5 +1,5 @@
 import psycopg2
-from fastapi import HTTPException
+from fastapi import HTTPException, Request
 from pydantic import ValidationError
 from models.model_usuario import Usuario
 from database.connect import connect_database
@@ -78,10 +78,14 @@ def delete_user(user: Usuario):
     finally:
         cursor.close()
 
-def update_user(user: Usuario):
+def update_user(user: Usuario, request: Request):
+    cursor = None
     try:
+        uuid_usuario = request.state.my_attr['uuid_usuario']
+        if uuid_usuario != str(user.uuid_usuario):
+            raise HTTPException(status_code=400, detail="Você não tem permissão para alterar este usuário.")
+        
         cursor = conn.cursor()
-        # Montando a tupla de parâmetros (o psycopg2 so aceita tuplas [linhas], então não posso passar os parametros 1 a 1)
         params = (
             user.nome_usuario,
             user.password_hash(user.senha_usuario),
@@ -96,13 +100,15 @@ def update_user(user: Usuario):
             """, params)
         conn.commit()
         
-        return {"message": "sucesso"}
+        return {"message": "Usuário atualizado com sucesso"}
+    
     except psycopg2.Error as e:
         raise HTTPException(status_code=400, detail=str(e))
-    except HTTPException as e:
+    except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
     finally:
-        cursor.close()
+        if cursor:
+            cursor.close()
 
 
 """
