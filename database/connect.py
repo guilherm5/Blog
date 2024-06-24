@@ -10,7 +10,7 @@ def connect_database():
         conn = psycopg2.connect(
             database=os.environ['database'],
             host=os.environ['host'],
-            user=os.environ['usuario'],
+            user=os.environ['user'],
             password=os.environ['senha']
         )
         print("Conexão com o banco de dados estabelecida com sucesso.")
