@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Request, Depends
 from models.model_usuario import Usuario
-from controllers.crud_usuario import create_user, get_my_user, delete_user, update_user
+from controllers.crud_usuario import create_user, get_my_user, delete_user, update_user, get_image_s3
 from controllers.security import login_user, get_current_user
 
 router_v1 = APIRouter(prefix="/v1", tags=["v2"])   
@@ -27,3 +27,8 @@ def put_user(user: Usuario, request: Request):
 @router_v1.post("/login-user")
 def login(user: Usuario):
     return login_user(user)
+
+# Rota AWS 
+@router_v1.get("/get-images")
+def get_images():
+    return get_image_s3()
