@@ -3,8 +3,12 @@ from fastapi import HTTPException, Request
 from pydantic import ValidationError
 from models.model_usuario import Usuario
 from database.connect import connect_database
+from utils.connect_bucket import connect_s3_service
+from dotenv import load_dotenv
+import os
 
 conn = connect_database()
+bucket_name = os.getenv('bucket_name')
 
 def create_user(user: Usuario):
     try:
@@ -114,6 +118,16 @@ def update_user(user: Usuario, request: Request):
         if cursor:
             cursor.close()
 
+def get_image_s3():
+    try:
+        s3 = connect_s3_service()
+        response = s3.list_objects_v2(Bucket=bucket_name)
+        objects_list = response['Contents']
+        print(f"Objetos encontrados: {len(objects_list)}")  
+        return objects_list
+    except Exception as e:
+        print('Erro ao buscar imagens:', e)
+        return []
 
 """
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")

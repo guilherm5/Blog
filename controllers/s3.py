@@ -1,23 +1,12 @@
-import boto3
+from utils.connect_bucket import connect_s3_service
 from dotenv import load_dotenv
 import os
 
 load_dotenv()
-# Credenciais da AWS e a região
-aws_access_key_id = os.getenv('access_key_s3')
-aws_secret_access_key = os.getenv('secret_key_s3')
-region_name = os.getenv('region_name')
 bucket_name = os.getenv('bucket_name')
-
 def get_images():
     try:
-        s3 = boto3.client(
-            's3',
-            aws_access_key_id=aws_access_key_id,
-            aws_secret_access_key=aws_secret_access_key,
-            region_name=region_name
-        )
-
+        s3 = connect_s3_service()
         response = s3.list_objects_v2(Bucket=bucket_name)
         objects_list = response['Contents']
         print(f"Objetos encontrados: {len(objects_list)}")  
@@ -27,8 +16,6 @@ def get_images():
         return []
 
 
-"""
-TESTE GET IMAGENS
 imagens = get_images()
 if imagens:
     first_image = imagens[0]
@@ -36,18 +23,11 @@ if imagens:
     print(f"Nome do primeiro objeto: {key}")
 else:
     print("Nenhuma imagem encontrada.")
-"""
     
     
 def upload_images():
-    s3 = boto3.client(
-            's3',
-            aws_access_key_id=aws_access_key_id,
-            aws_secret_access_key=aws_secret_access_key,
-            region_name=region_name
-    )
-    print(bucket_name)
     try:
+        s3 = connect_s3_service()
         with open('maxresdefault (1).jpg', "rb") as f:
             s3.upload_fileobj(f, bucket_name, 'maxresdefault (1).jpg')
             print("Upload realizado com sucesso.")
@@ -55,4 +35,4 @@ def upload_images():
         print('Erro ao fazer upload da imagem:', e)
 
 # Executando a função upload_images
-upload_images()
+#upload_images()
